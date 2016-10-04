@@ -11,12 +11,13 @@ import {
   GraphQLNonNull
 } from 'graphql';
 
+import { loadSchema } from '../../src/loading'
+
 import { propertyFromField } from '../../src/swift/properties'
 
-const schemaData = require('../starwars/schema.json');
-const schema = buildClientSchema(schemaData);
+const schema = loadSchema(require.resolve('../starwars/schema.json'));
 
-describe('TypeScript #propertyFromField()', () => {
+describe('TS #propertyFromField()', () => {
   it('should return a property for a scalar field', () => {
     const field = { name: 'name', type: GraphQLString };
     const property = propertyFromField(field);
@@ -80,7 +81,7 @@ describe('TypeScript #propertyFromField()', () => {
 
     assert.containSubset(stringify(property), {
       name: 'hero',
-      unmodifiedTypeName: 'Hero',
+      bareTypeName: 'Hero',
       isOptional: true,
       isList: false,
       isComposite: true,
@@ -102,7 +103,7 @@ describe('TypeScript #propertyFromField()', () => {
 
     assert.containSubset(stringify(property), {
       name: 'hero',
-      unmodifiedTypeName: 'Hero',
+      bareTypeName: 'Hero',
       isOptional: false,
       isList: false,
       isComposite: true,
@@ -123,7 +124,7 @@ describe('TypeScript #propertyFromField()', () => {
 
     assert.containSubset(stringify(property), {
       name: 'friends',
-      unmodifiedTypeName: 'Friend',
+      bareTypeName: 'Friend',
       isOptional: true,
       isList: true,
       isComposite: true,

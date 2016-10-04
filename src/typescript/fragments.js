@@ -7,20 +7,44 @@ import {
   indent
 } from '../utilities/printing';
 
+import {
+  classDeclaration,
+  protocolDeclaration,
+  protocolPropertyDeclaration,
+  protocolPropertyDeclarations
+} from './declarations';
+
 import { multilineString } from './strings'
 import { propertiesFromFields } from './properties'
 
-export function typeDeclarationForFragment({ fragmentName, fields, source }) {
+export function classDeclarationForFragment(generator,
+    { fragmentName, source = '' }) {
+  const className = `${pascalCase(fragmentName)}Fragment`;
+
+  classDeclaration(generator, {
+    name: className,
+    modifiers: ['public', 'final'],
+    adoptedProtocols: ['GraphQLFragment']
+  }, () => {
+    generator.printOnNewline('public static let fragmentDefinition =');
+    generator.withIndent(() => {
+      multilineString(generator, source);
+    });
+
+    const protocolName = protocolNameForFragmentName(fragmentName);
+    generator.printNewlineIfNeeded();
+    generator.printOnNewline(`public typealias Data = ${protocolName}`);
+  });
+}
+
+export function protocolDeclarationForFragment(generator, { fragmentName, fields }) {
   const protocolName = protocolNameForFragmentName(fragmentName);
   const className = `${protocolName}Fragment`;
-  const properties = propertiesFromFields(fields);
 
-  return join([
-    `export type ${className} =`,
-    block(properties.map(({ name, typeName }) =>
-      `${name}: ${typeName},`
-    ))
-  ]);
+  protocolDeclaration(generator, { name: 'HeroDetails' }, () => {
+    const properties = propertiesFromFields(fields);
+    protocolPropertyDeclarations(generator, properties);
+  });
 }
 
 export function protocolNameForFragmentName(fragmentName) {
