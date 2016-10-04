@@ -21,14 +21,14 @@ export function typeNameFromGraphQLType(type, unmodifiedTypeName, nullable = tru
 
   let typeName;
   if (type instanceof GraphQLList) {
-    typeName = '[' + typeNameFromGraphQLType(type.ofType, unmodifiedTypeName, true) + ']';
+    typeName = 'Array<' + typeNameFromGraphQLType(type.ofType, unmodifiedTypeName, true) + '>';
   } else if (type === GraphQLID) {
     typeName = 'GraphQLID'
   } else {
     typeName = unmodifiedTypeName || type.name;
   }
 
-  return nullable ? typeName + '?' : typeName;
+  return nullable ? typeName + ' | null' : typeName;
 }
 
 export function typeDeclarationForGraphQLType(type) {
@@ -41,15 +41,13 @@ function enumerationDeclaration(type) {
   const { name, description } = type;
   const values = type.getValues();
 
-  const caseDeclarations = values.map(value =>
-    `case ${camelCase(value.name)} = "${value.value}"${wrap(' /// ', value.description)}`
+  const caseDeclarations = values.map((value, i) =>
+    `  '${value.value}'${i !== values.length - 1 ? ' |' : ';'}${wrap(' /// ', value.description)}`
   );
 
   return join([
     description && `/// ${description}\n`,
-    `public enum ${name}: String `,
-    block(caseDeclarations),
-    '\n\n',
-    `extension ${name}: JSONDecodable, JSONEncodable {}`
+    `export type ${name} = \n`,
+    caseDeclarations.join('\n'),
   ]);
 }

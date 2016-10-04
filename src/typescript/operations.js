@@ -19,7 +19,7 @@ import { typeNameFromGraphQLType, typeDeclarationForGraphQLType } from './types'
 import { propertiesFromFields, typeNameForProperty } from './properties'
 import { protocolNameForFragmentName } from './fragments'
 
-export function classDeclarationForOperation({ operationName, variables, fields, source, fragmentsReferenced }) {
+export function typeDeclarationForOperation({ operationName, variables, fields, source, fragmentsReferenced }) {
   const className = `${pascalCase(operationName)}Query`;
   const properties = propertiesFromFields(fields);
 
