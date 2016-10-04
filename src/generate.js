@@ -21,13 +21,16 @@ export default function generate(inputPaths, schemaPath, outputPath, target) {
   switch (target ? target.toLowerCase() : 'swift') {
     case 'json': {
       output = generateIR(context);
+      break;
     }
     case 'ts': {
       output = generateTypeScriptSource(context);
+      break;
     }
     case 'swift':
     default: {
       output = generateSwiftSource(context);
+      break;
     }
   }
 
