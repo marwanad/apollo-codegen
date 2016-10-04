@@ -4,7 +4,8 @@ import { ToolError, logError } from './errors'
 import { loadSchema,  loadAndMergeQueryDocuments } from './loading'
 import { validateQueryDocument } from './validation'
 import { Compiler, stringifyIR } from './compilation'
-import { generateSource } from './swift'
+import { generateSource as generateSwiftSource } from './swift'
+import { generateSource as generateTypeScriptSource } from './typescript'
 
 export default function generate(inputPaths, schemaPath, outputPath, target) {
   const schema = loadSchema(schemaPath);
@@ -15,7 +16,20 @@ export default function generate(inputPaths, schemaPath, outputPath, target) {
 
   const context = new Compiler(schema, document);
 
-  const output = (target && target.toLowerCase() === 'json') ? generateIR(context) : generateSource(context);
+  let output = null;
+
+  switch (target ? target.toLowerCase() : 'swift') {
+    case 'json': {
+      output = generateIR(context);
+    }
+    case 'ts': {
+      output = generateTypeScriptSource(context);
+    }
+    case 'swift':
+    default: {
+      output = generateSwiftSource(context);
+    }
+  }
 
   fs.writeFileSync(outputPath, output);
 }
