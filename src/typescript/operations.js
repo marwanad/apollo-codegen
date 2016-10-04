@@ -10,8 +10,9 @@ import {
 } from '../utilities/printing';
 
 import {
-  classDeclaration,
+  interfaceDeclaration,
   structDeclaration,
+  interfacePropertyDeclaration,
   propertyDeclaration,
   propertyDeclarations
 } from './declarations';
@@ -34,34 +35,18 @@ export function classDeclarationForOperation(generator,
     { operationName, variables = [], fields = [], source = '', fragmentsReferenced }) {
   const className = `${pascalCase(operationName)}Query`;
 
-  classDeclaration(generator, {
+  interfaceDeclaration(generator, {
     name: className,
-    modifiers: ['public', 'final'],
-    adoptedProtocols: ['GraphQLQuery']
   }, () => {
-    generator.printOnNewline('public static let operationDefinition =');
-    generator.withIndent(() => {
-      multilineString(generator, source);
-    });
-
-    if (fragmentsReferenced && fragmentsReferenced.length > 0) {
-      generator.printOnNewline('public static let queryDocument = operationDefinition');
-      generator.print(fragmentsReferenced.map(fragment =>
-        `.appending(${protocolNameForFragmentName(fragment)}Fragment.fragmentDefinition)`
-      ));
-    }
-
-    if (variables && variables.length > 0) {
-      generator.printNewlineIfNeeded();
-      propertyDeclarations(generator, propertiesFromFields(variables));
-      generator.printNewlineIfNeeded();
-      initializerDeclarationForVariables(generator, variables);
-      generator.printNewlineIfNeeded();
-      variablesProperty(generator, variables);
-    }
 
     const properties = propertiesFromFields(fields);
-    structDeclarationForProperty(generator, { bareTypeName: "Data", properties });
+
+    properties.filter(property => !property.isComposite).forEach(property => 
+      interfacePropertyDeclaration(generator, property)
+    );
+    properties.filter(property => property.isComposite).forEach(property => 
+      structDeclarationForProperty(generator, property)
+    );
   });
 }
 
@@ -96,22 +81,14 @@ export function variablesProperty(generator, variables) {
 }
 
 export function structDeclarationForProperty(generator,
-    { bareTypeName, fragmentSpreads = [], properties = [] }) {
+    { name, bareTypeName, fragmentSpreads = [], properties = [] }) {
   const adoptedProtocols = ['GraphQLMapConvertible', ...fragmentSpreads.map(protocolNameForFragmentName)];
 
-  structDeclaration(generator, { name: bareTypeName, adoptedProtocols }, () => {
+  structDeclaration(generator, { name, adoptedProtocols }, () => {
     propertyDeclarations(generator, properties);
-
-    generator.printNewlineIfNeeded();
-    generator.printOnNewline('public init(map: GraphQLMap) throws');
-    generator.withinBlock(() => {
-      properties.forEach(property => initializationForProperty(generator, property));
-    });
-
-    properties.filter(property => property.isComposite).forEach(property => {
-      structDeclarationForProperty(generator, property);
-    });
   });
+  
+  generator.print(';');
 }
 
 export function initializationForProperty(generator, { name, fieldName, isOptional, isList }) {

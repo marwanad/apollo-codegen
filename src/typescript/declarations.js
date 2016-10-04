@@ -14,18 +14,30 @@ export function classDeclaration(generator, { name, modifiers, superClass, adopt
   generator.popScope();
 }
 
-export function structDeclaration(generator, { name, adoptedProtocols = [] }, closure) {
+export function interfaceDeclaration(generator, { name, properties }, closure) {
   generator.printNewlineIfNeeded();
-  generator.printOnNewline(`public struct ${name}`);
-  generator.print(wrap(': ', join(adoptedProtocols, ', ')));
+  generator.printNewline();
+  generator.print(`export interface ${ name }`);
   generator.pushScope({ typeName: name });
   generator.withinBlock(closure);
   generator.popScope();
 }
 
-export function propertyDeclaration(generator, { name, typeName }) {
-  generator.printOnNewline(`public let ${name}: ${typeName}`);
+export function structDeclaration(generator, { name, adoptedProtocols = [] }, closure) {
+  generator.printNewlineIfNeeded();
+  generator.printOnNewline(`${name}:`);
+  generator.withinBlock(closure);
+  generator.popScope();
 }
+
+export function interfacePropertyDeclaration(generator, { name, typeName }) {
+  generator.printOnNewline(`${name}: ${typeName};`);
+}
+
+export function propertyDeclaration(generator, { name, typeName }) {
+  generator.printOnNewline(`${name}: ${typeName},`);
+}
+
 
 export function propertyDeclarations(generator, properties) {
   properties.forEach(property => propertyDeclaration(generator, property));

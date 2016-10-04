@@ -19,8 +19,6 @@ export function generateSource(compiler) {
   const context = new CodeGenerator();
 
   context.printOnNewline('//  This file was automatically generated and should not be edited.');
-  context.printNewline();
-  context.printOnNewline('import Apollo');
 
   compiler.typesUsed.forEach(type => {
     typeDeclarationForGraphQLType(context, type);

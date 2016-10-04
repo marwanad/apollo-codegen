@@ -21,14 +21,14 @@ export function typeNameFromGraphQLType(type, bareTypeName, nullable = true) {
 
   let typeName;
   if (type instanceof GraphQLList) {
-    typeName = '[' + typeNameFromGraphQLType(type.ofType, bareTypeName, true) + ']';
+    typeName = 'Array<' + typeNameFromGraphQLType(type.ofType, bareTypeName, true) + '>';
   } else if (type === GraphQLID) {
     typeName = 'GraphQLID'
   } else {
     typeName = bareTypeName || type.name;
   }
 
-  return nullable ? typeName + '?' : typeName;
+  return nullable ? typeName + ' | null' : typeName;
 }
 
 export function typeDeclarationForGraphQLType(generator, type) {
@@ -42,13 +42,9 @@ function enumerationDeclaration(generator, type) {
   const values = type.getValues();
 
   generator.printNewlineIfNeeded();
-  generator.printOnNewline(description && `/// ${description}`);
-  generator.printOnNewline(`public enum ${name}: String`);
-  generator.withinBlock(() => {
-    values.forEach(value =>
-      generator.printOnNewline(`case ${camelCase(value.name)} = "${value.value}"${wrap(' /// ', value.description)}`)
-    );
-  });
-  generator.printNewline();
-  generator.printOnNewline(`extension ${name}: JSONDecodable, JSONEncodable {}`);
+  generator.printOnNewline(description && `// ${description}`);
+  generator.printOnNewline(`export type ${name} =`);
+  values.forEach((value, i) =>
+    generator.printOnNewline(`  '${value.value}'${i === values.length - 1 ? ';' : ' |'}${wrap(' // ', value.description)}`)
+  );
 }
