@@ -37,7 +37,7 @@ import {
 
 import CodeGenerator from '../utilities/CodeGenerator';
 
-export function generateSwiftSource(context) {
+export function generateSource(context) {
   const generator = new CodeGenerator(context);
 
   generator.printOnNewline('//  This file was automatically generated and should not be edited.');
